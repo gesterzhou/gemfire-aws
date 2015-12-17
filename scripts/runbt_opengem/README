@@ -1,0 +1,10 @@
+This set of scripts is for running single hydra test for opengem and later version. 
+
+Usage: bash ./runbt.sh btfile path_of_local.conf
+For example: bash./runbt.sh peer.bt peer.local.conf
+
+Following files might contain the hard-coded directories, update them accordingly:
+- runbt.sh: modify the checkoutDir. Opengem's source code is open, we can upload
+the source code to AWS. Run gradlew is supported in AWS.
+- The embeded log4j2.xml will turn on debug level log. Rename it if don't want to.
+- hostdirs.prop: It contains location of local files for each host. copy this file to $HOME of local host. 

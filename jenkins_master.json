@@ -1,0 +1,61 @@
+{
+    "variables": {
+        "aws_access_key": "",
+        "aws_secret_key": "",
+        "name": "RelEng Jenkins Master RHEL6.5",
+        "ami": "ami-11125e21",
+        "region": "us-west-2",
+        "buildBy" : "RelEng",
+        "instance_type": "r3.large"
+    },
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "access_key": "{{user `aws_access_key`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "region": "{{user `region`}}",
+            "source_ami": "{{user `ami`}}",
+            "instance_type": "{{user `instance_type`}}",
+            "ssh_username": "ec2-user",
+            "ami_name": "{{user `name`}} {{timestamp}}",
+            "ami_description": "Base AMI created on {{timestamp}} by {{user `buildBy`}}.  Parent is {{user `ami`}}",
+            "enhanced_networking": false,
+            "vpc_id": "vpc-be10fddb",
+            "subnet_id": "subnet-c6ad9b80",
+            "security_group_ids": [
+                "sg-00bb7465"
+            ],
+            "launch_block_device_mappings": [
+                {
+                    "device_name": "/dev/sda1",
+                    "delete_on_termination": true
+                }
+            ],
+            "ami_block_device_mappings": [
+                {
+                    "device_name": "/dev/sda1",
+                    "volume_size": 12,
+                    "volume_type": "standard",
+                    "delete_on_termination": true
+                },
+                {
+                    "device_name": "/dev/sdb",
+                    "virtual_name": "ephemeral0",
+                    "delete_on_termination": true
+                }
+            ]
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "environment_vars": [],
+            "execute_command": "echo 'gpadmin' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
+            "scripts": [
+                "scripts/add-xvdb-disk",
+                "scripts/install-jenkins",
+                "scripts/setup-jenkins-master"
+            ]
+        }
+    ]
+}

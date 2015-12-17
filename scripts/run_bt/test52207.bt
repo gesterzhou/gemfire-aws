@@ -1,0 +1,12 @@
+parReg/bridge/serialParRegHABridge.conf
+   bridgeHosts=5
+   bridgeThreadsPerVM=1
+   bridgeVMsPerHost=1
+   edgeHosts=4
+   edgeThreadsPerVM=1
+   edgeVMsPerHost=1
+   numAccessors=1
+   numEmptyClients=1
+   numThinClients=1
+   numVMsToStop=1
+   redundantCopies=3

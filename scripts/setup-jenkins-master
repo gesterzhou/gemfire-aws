@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+# print all statements
+set -x
+# fail is a statement fails
+set -e
+# fail if a pipe fails
+set -o pipefail
+
+bin=`dirname "$0"`
+bin=`cd "$bin">/dev/null; pwd`
+
+main() {
+
+  chkconfig jenkins --add
+
+  sudo sh -c 'cat >> /etc/rc.d/rc.local <<EOF
+
+## Set up jenkins data directory
+mkdir /data/jenkins
+
+EOF
+'
+
+  sudo sh -c 'cat >> /etc/sysconfig/jenkins <<EOF
+JENKINS_HOME=/data/jenkins
+
+EOF
+'
+
+}
+
+main "$@"

@@ -1,0 +1,9 @@
+This set of scripts is for running single hydra test for gemfire810 and earlier version. 
+
+Usage: bash ./runbt.sh btfile path_of_local.conf
+For example: bash./runbt.sh peer.bt peer.local.conf
+
+Following files might contain the hard-coded directories, update them accordingly:
+- setup.sh: OBJ_BASE and JTESTSROOT
+- The embeded log4j2.xml will turn on debug level log. Rename it if don't want to.
+- hostdirs.prop: It contains location of local files for each host. copy this file to $HOME of local host. 

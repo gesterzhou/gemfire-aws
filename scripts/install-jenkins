@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+# print all statements
+set -x
+# fail is a statement fails
+set -e
+# fail if a pipe fails
+set -o pipefail
+
+bin=`dirname "$0"`
+bin=`cd "$bin">/dev/null; pwd`
+
+main() {
+
+   wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
+   rpm --import http://pkg.jenkins-ci.org/redhat/jenkins-ci.org.key
+   yum -y install jenkins
+}
+
+main "$@"

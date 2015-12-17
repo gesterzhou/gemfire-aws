@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -x
+set -e
+set -o pipefail
+
+bin=`dirname "$0"`
+bin=`cd "$bin">/dev/null; pwd`
+
+# Packer will create a image with fresh keys, and the current image
+# caches the keys into the image. Use this to cleanup the packer keys
+main() {
+  rm -rf /root/.ssh
+}
+
+main "$@"

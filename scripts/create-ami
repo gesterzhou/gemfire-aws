@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# create AMI for base  if necessary
+results=`aws ec2 describe-images --owners self --filters "Name=name,Values=Gemfire - base - RHEL7 - 7.1*" | tee ami.log | wc -l`
+if [ $results -gt 30 ]; then
+  echo "AMI: Gemfire - base - RHEL7 - 7.1 exists, no need to create"
+  ami_id=`grep "ImageId" ami.log | cut -f4 -d'"'`
+else
+  ./packit gemfire-base-rhel7-7.1.json | tee ami.log
+  ami_id=`grep "amazon-ebs: AMI: " ami.log | cut -f7 -d' '`
+fi
+echo base AMI id is: $ami_id
+
+# create AMI for gemfire 8.1 if necessary
+results=`aws ec2 describe-images --owners self --filters "Name=name,Values=Gemfire - 8.1.0 - RHEL7 - 7.1*" | tee ami.log | wc -l`
+if [ $results -gt 30 ]; then
+  echo "AMI: Gemfire - 8.1.0 - RHEL7 - 7.1 exists, no need to create"
+  ami_id=`grep "ImageId" ami.log | cut -f4 -d'"'`
+else 
+  sed -e "/\"ami\":/s/\"ami\":.*/\"ami\": \"$ami_id\",/" gemfire-8.1-rhel7-7.1.json > gf81.json
+  ./packit gf81.json | tee ami.log
+  ami_id=`grep "amazon-ebs: AMI: " ami.log | cut -f7 -d' '`
+  instance_id=`grep "amazon-ebs: Instance ID" ami.log | cut -f8 -d' '`
+  echo instance_id=$instance_id
+fi
+echo 8.1.0 AMI id is: $ami_id
+echo $ami_id > ami_id.txt
+

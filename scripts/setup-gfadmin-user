@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+set -x
+set -e
+set -o pipefail
+
+bin=`dirname "$0"`
+bin=`cd "$bin">/dev/null; pwd`
+
+user=gfadmin
+group="$user"
+home="/home/$user"
+
+create_user() {
+  groupadd -g 500 "$group"
+  if [ -f /etc/SuSE-release ]; then
+    useradd -G "users" -m -g "$group" "$user"
+  else
+    useradd -g "$group" "$user"
+  fi
+  
+  # create SSH settings
+  sudo -u $user -H bash -c "ssh-keygen -N '' -f ~/.ssh/id_rsa && cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys"
+  cat /tmp/authorized_keys >> "$home/.ssh/authorized_keys"
+  rm /tmp/authorized_keys
+  cat /tmp/config >> "$home/.ssh/config"
+  rm /tmp/config
+
+  # add to sudoers
+  sudo sh -c "cat > /etc/sudoers.d/gfadmin <<EOF
+$user ALL=(ALL) NOPASSWD: ALL
+Defaults:gfadmin !requiretty
+EOF
+"
+
+  if [ -f /etc/SuSE-release ]; then
+    chmod 0440 /etc/sudoers.d/gfadmin
+  fi
+
+  # change permissions on home
+  chown -R "$user:$group" "$home/"
+  chmod -R 700 "$home"
+  
+  # set password
+  echo "$user:changeme" | chpasswd
+
+  
+}
+
+
+main() {
+  create_user
+}
+
+main "$@"

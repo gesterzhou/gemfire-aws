@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -x
+set -e
+set -o pipefail
+
+bin=`dirname "$0"`
+bin=`cd "$bin">/dev/null; pwd`
+
+user=gpadmin
+group="$user"
+home="/home/$user"
+
+chmod 700 $home
+chown -R gpadmin:gpadmin $home/.ssh/
+chmod 700 $home/.ssh
+chmod 600 $home/.ssh/id_rsa
+chmod 644 $home/.ssh/id_rsa.pub
+chmod 600 $home/.ssh/config
+chmod 600 $home/.ssh/authorized_keys
+cat "$home/.ssh/id_rsa.pub" >> "$home/.ssh/authorized_keys"

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+# print all statements
+set -x
+# fail is a statement fails
+set -e
+# fail if a pipe fails
+set -o pipefail
+
+bin=`dirname "$0"`
+bin=`cd "$bin">/dev/null; pwd`
+
+main() {
+
+  curl -v -j -k -L -H "Cookie: oraclelicense=accept-securebackup-cookie" \
+      http://download.oracle.com/otn-pub/java/jdk/8u45-b14/jdk-8u45-linux-x64.rpm > /tmp/jdk.rpm
+ 
+
+  # choose install method
+  INSTALLER=yum
+  if [ -f /etc/SuSE-release ]; then
+      INSTALLER=zypper
+  fi
+
+  # install extra rpms
+  ${INSTALLER} install -y /tmp/jdk.rpm
+
+  rm /tmp/jdk.rpm
+}
+
+main "$@"

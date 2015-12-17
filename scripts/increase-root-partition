@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+##
+## Only add this script to packer execution if default root disk is increased for RHEL7
+##
+
+set -x
+set -e
+set -o pipefail
+
+bin=`dirname "$0"`
+bin=`cd "$bin">/dev/null; pwd`
+
+main() {
+  if [ -f /etc/SuSE-release ]; then
+    growpart /dev/hda 1
+  else
+    # Install gdisk as root partition for RHEL7 is GPT
+    sudo yum install -y gdisk
+
+    # Use sgdisk for GPT partitions
+    sgdisk -o /dev/xvda
+    sgdisk -n 1:0:4095 -c 1:"BIOS boot partition" -t 1:EF02 /dev/xvda
+    sgdisk -n 2:0:0 -c 2:"Microsoft basic data" -t 2:0700 /dev/xvda
+  fi
+}
+
+main "$@"

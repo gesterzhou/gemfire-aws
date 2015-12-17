@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+if [ $# -ne 2 ]; then
+  echo "Usage: create-instances instance_type num"
+  exit 1
+fi
+if [ ! -f ami_id.txt ]; then
+  echo "ami_id.txt does not exist"
+  exit 1
+fi
+
+instance_type=$1
+num=$2
+ami_id=`cat ami_id.txt`
+
+cmd=$(readlink -f $0)
+current_dir=`pwd`
+basedir=$(dirname $cmd)
+if [ "$basedir" = "." ]; then
+  scripts_dir=$current_dir
+else
+  scripts_dir=$basedir
+fi
+echo $scripts_dir
+
+if [ ! -f GemfireSG.txt ]; then
+  $scripts_dir/create-sg
+fi
+sg_id=`cat GemfireSG.txt`
+echo "security group id is: $sg_id"
+
+aws ec2 run-instances --image-id $ami_id --count $num --instance-type $instance_type --security-group-ids $sg_id --subnet-id subnet-c6ad9b80 --associate-public-ip-address | tee instance.log
+grep '"PrivateIpAddress": "' instance.log | cut -f4 -d'"' | sort -u > privateIP.txt
+grep '"InstanceId": "' instance.log | cut -f4 -d'"' | sort -u > instance_id.txt
+
+paste privateIP.txt instance_id.txt >> ${instance_type}.txt
+cat ${instance_type}.txt
+rm privateIP.txt instance_id.txt
+

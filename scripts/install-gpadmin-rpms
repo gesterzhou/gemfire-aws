@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+# print all statements
+set -x
+# fail is a statement fails
+set -e
+# fail if a pipe fails
+set -o pipefail
+
+bin=`dirname "$0"`
+bin=`cd "$bin">/dev/null; pwd`
+
+main() {
+  # choose install method
+  INSTALLER=yum
+  if [ -f /etc/SuSE-release ]; then
+      INSTALLER=zypper
+  fi
+
+  # install extra rpms
+  ${INSTALLER} install -y gcc
+  ${INSTALLER} install -y java
+  ${INSTALLER} install -y createrepo
+  ${INSTALLER} install -y telnet
+  ${INSTALLER} install -y ed
+  ${INSTALLER} install -y wget
+  ${INSTALLER} install -y unzip
+  ${INSTALLER} install -y pam-devel
+  ${INSTALLER} install -y pam_krb5
+  ${INSTALLER} install -y vim
+  ${INSTALLER} install -y emacs
+  ${INSTALLER} install -y bind-utils
+  ${INSTALLER} install -y httpd
+  ${INSTALLER} install -y git
+  ${INSTALLER} install -y valgrind
+  ${INSTALLER} install -y krb5-server
+
+  if [ -f /etc/redhat-release ]; then
+      ${INSTALLER} install -y libtar
+      ${INSTALLER} install -y perl-Env
+      ${INSTALLER} install -y perl-Data-Dumper
+      ${INSTALLER} install -y krb5-workstation
+  elif [ -f /etc/SuSE-release ]; then
+      ${INSTALLER} install -y krb5-client
+      ${INSTALLER} install -y kernel-default
+      ${INSTALLER} install -y kernel-default-devel
+      ${INSTALLER} install -y kernel-firmware
+  fi
+
+}
+
+main "$@"

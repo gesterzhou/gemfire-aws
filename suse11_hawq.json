@@ -1,0 +1,174 @@
+{
+    "variables": {
+        "aws_access_key": "",
+        "aws_secret_key": "",
+        "name": "RelEng HAWQ SuSE 11 SP3",
+        "ami": "ami-3b0f420b",
+        "region": "us-west-2",
+        "buildBy" : "RelEng",
+        "instance_type": "r3.large"
+    },
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "access_key": "{{user `aws_access_key`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "region": "{{user `region`}}",
+            "source_ami": "{{user `ami`}}",
+            "instance_type": "{{user `instance_type`}}",
+            "ssh_username": "ec2-user",
+            "ami_name": "{{user `name`}} {{timestamp}}",
+            "ami_description": "Base AMI created on {{timestamp}} by {{user `buildBy`}}.  Parent is {{user `ami`}}",
+            "enhanced_networking": false,
+            "vpc_id": "vpc-be10fddb",
+            "subnet_id": "subnet-c6ad9b80",
+            "security_group_ids": [
+                "sg-00bb7465"
+            ],
+            "launch_block_device_mappings": [
+                {
+                    "device_name": "/dev/sda1",
+                    "delete_on_termination": true
+                }
+            ],
+            "ami_block_device_mappings": [
+                {
+                    "device_name": "/dev/sda1",
+                    "volume_size": 24,
+                    "volume_type": "gp2",
+                    "delete_on_termination": true
+                },
+                {
+                    "device_name": "/dev/sdb",
+                    "virtual_name": "ephemeral0",
+                    "delete_on_termination": true
+                }
+            ]
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "environment_vars": [],
+            "execute_command": "echo 'gpadmin' | {{.Vars}} sudo -S bash '{{.Path}}'",
+            "scripts": [
+                "scripts/disable-motd",
+                "scripts/disable-selinux",
+                "scripts/setup-gpadmin-user",
+                "scripts/enable-password-auth"
+            ]
+        },
+        {
+            "type": "file",
+            "source": "artifacts/id_rsa.pub",
+            "destination": "/home/gpadmin/.ssh/id_rsa.pub"
+        },
+        {
+            "type": "file",
+            "source": "artifacts/id_rsa",
+            "destination": "/home/gpadmin/.ssh/id_rsa"
+        },
+        {
+            "type": "file",
+            "source": "artifacts/config",
+            "destination": "/home/gpadmin/.ssh/config"
+        },
+        {
+            "type": "file",
+            "source": "artifacts/authorized_keys",
+            "destination": "/home/gpadmin/.ssh/authorized_keys"
+        },
+        {
+            "type": "file",
+            "source": "artifacts/sysctl.conf-hawq",
+            "destination": "/tmp/sysctl.conf"
+        },
+        {
+            "type": "file",
+            "source": "artifacts/limits.conf-hawq",
+            "destination": "/tmp/limits.conf"
+        },
+        {
+            "type": "file",
+            "source": "artifacts/dhcp",
+            "destination": "/tmp/dhcp"
+        },
+        {
+            "type": "file",
+            "source": "artifacts/jsvc",
+            "destination": "/tmp/jsvc"
+        },
+        {
+            "type": "shell",
+            "inline": ["sudo chown root:root /tmp/sysctl.conf",
+                       "sudo mv /tmp/sysctl.conf /etc/.",
+                       "sudo chown root:root /tmp/limits.conf",
+                       "sudo mv /tmp/limits.conf /etc/security/.",
+                       "sudo mv /tmp/jsvc /usr/bin/.",
+                       "sudo chown root:root /tmp/dhcp",
+                       "sudo mv /tmp/dhcp /etc/sysconfig/network/."]
+        },
+        {
+            "type": "shell",
+            "inline": ["sudo mv /etc/localtime /etc/localtime.backups",
+                       "sudo cp /usr/share/zoneinfo/PST8PDT /etc/localtime"]
+        },
+        {
+            "type": "file",
+            "source": "artifacts/p4",
+            "destination": "/tmp/p4"
+        },
+        {
+            "type": "file",
+            "source": "artifacts/.p4tickets",
+            "destination": "/tmp/.p4tickets"
+        },
+        {
+            "type": "shell",
+            "inline": ["sudo chown root:root /tmp/p4",
+                       "sudo chmod +x /tmp/p4",
+                       "sudo mv /tmp/p4 /usr/local/bin/.",
+                       "sudo chown gpadmin:gpadmin /tmp/.p4tickets",
+                       "sudo mv /tmp/.p4tickets /home/gpadmin/."]
+        },
+        {
+            "type": "file",
+            "source": "artifacts/pulse-agent-2.6.19",
+            "destination": "/home/gpadmin"
+        },
+        {
+            "type": "shell",
+            "inline": ["sudo chmod 777 /opt"]
+        },
+        {
+            "type": "file",
+            "source": "artifacts/jdk1.7.0_72",
+            "destination": "/opt"
+        },
+        {
+            "type": "file",
+            "source": "artifacts/jdk1.6.0_21",
+            "destination": "/opt"
+        },
+        {
+            "type": "shell",
+            "environment_vars": [],
+            "execute_command": "echo 'gpadmin' | {{.Vars}} sudo -S bash '{{.Path}}'",
+            "scripts": [
+                "scripts/setup-gpadmin-key-permission",
+                "scripts/setup-gpadmin-dns",
+                "scripts/hostname",
+                "scripts/install-gpadmin-rpms",
+                "scripts/ntp",
+                "scripts/add-xvdb-disk",
+                "scripts/setup-gpadmin-pulse",
+                "scripts/remove-root-keys",
+                "scripts/fix-rc-local-suse"
+            ]
+        },
+        {
+            "type": "shell",
+            "inline": ["sudo ln -s /usr/src/linux/arch/x86/include/asm/atomic64_64.h /usr/src/linux/arch/x86/include/asm/atomic_64.h"]
+        }
+    ]
+}

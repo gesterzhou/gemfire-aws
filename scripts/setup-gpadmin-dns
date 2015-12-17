@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -x
+set -e
+set -o pipefail
+
+bin=`dirname "$0"`
+bin=`cd "$bin">/dev/null; pwd`
+
+main() {
+  sudo sh -c 'cat >> /etc/rc.d/rc.local <<OUT
+
+# setup pivotal DNS for internal lookback
+# this will override the existing DNS settings provided by AWS
+cat > /etc/resolv.conf <<EOF
+search pivotal.io
+nameserver 10.32.35.253
+EOF
+
+OUT
+'
+}
+
+main "$@"

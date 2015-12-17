@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+# print all statements
+set -x
+# fail is a statement fails
+set -e
+# fail if a pipe fails
+set -o pipefail
+
+bin=`dirname "$0"`
+bin=`cd "$bin">/dev/null; pwd`
+
+main() {
+
+  hostname_file=/etc/hostname
+  if [ -e /etc/SuSE-release ]; then
+    hostname_file=/etc/HOSTNAME
+  fi
+
+  sudo sh -c "cat >> /etc/rc.d/rc.local <<OUT
+hostname test1
+echo test1 > $hostname_file
+
+OUT
+"
+  sudo sh -c 'cat >> /etc/rc.d/rc.local <<OUT
+
+# Setup hostname and FQDN to match local-hostname
+ip=\$(/usr/bin/curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
+ami_id=\$(/usr/bin/curl -s http://169.254.169.254/latest/meta-data/ami-id)
+
+cat > /etc/hosts <<EOF
+#This file is automatically genreated on boot; updated at \$(date)
+127.0.0.1       localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1             localhost localhost.localdomain localhost6 localhost6.localdomain6
+10.32.35.139    perforce perforce-proxy
+
+\$ip test1 #\$ami_id
+
+EOF
+
+OUT
+'
+  sed -i -e '/ - set_hostname/d' \
+      -e '/ - update_hostname/d' \
+      -e '/ - update_etc_hosts/d' \
+      -e '/ - mounts/d' \
+      /etc/cloud/cloud.cfg
+
+}
+
+main "$@"

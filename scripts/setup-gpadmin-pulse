@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -x
+set -e
+set -o pipefail
+
+bin=`dirname "$0"`
+bin=`cd "$bin">/dev/null; pwd`
+
+main() {
+  pulse_home=/home/gpadmin/pulse-agent-2.6.19
+  pulse_data=/data/gpadmin/pulse2-agent
+
+  cat > /etc/sysconfig/pulse <<EOF
+export JAVA_HOME=/opt/jdk1.6.0_21
+export PATH=\${JAVA_HOME}/bin:/usr/local/bin:/usr/local/sbin:\$PATH
+export HOSTNAME=\${HOSTNAME}
+EOF
+
+
+  sudo sh -c "cat >> /etc/rc.d/rc.local <<EOF
+
+ln -s $pulse_home/bin/init.sh /etc/init.d/pulse
+mkdir -p $pulse_data/config
+echo \"pulse.suppress.bootstrap.output=true\" > $pulse_data/config/system.properties
+mkdir /data/data1 /data/data2 /data/data3 /data/data4
+ln -s /data/data1 /data1
+ln -s /data/data2 /data2
+ln -s /data/data3 /data3
+ln -s /data/data4 /data4
+chown -R gpadmin:gpadmin /data
+chown -R gpadmin:gpadmin $pulse_home
+
+# Enable pulse as a service
+service pulse start
+
+EOF
+"
+
+}
+
+main "$@"

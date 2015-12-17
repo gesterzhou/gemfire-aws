@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="ERROR" shutdownHook="disable" packages="com.gemstone.gemfire.internal.logging.log4j">
+  <Properties>
+    <Property name="gemfire-pattern">[%level{lowerCase=true} %date{yyyy/MM/dd HH:mm:ss.SSS z} &lt;%thread&gt; tid=%tid] %message%n%throwable%n</Property>
+  </Properties>
+  <filters>
+    <MarkerFilter marker="DISTRIBUTION" onMatch="ACCEPT" onMismatch="NEUTRAL"/>
+    <MarkerFilter marker="DISK_STORE_MONITOR" onMatch="ACCEPT" onMismatch="NEUTRAL"/>
+    <!--MarkerFilter marker="PERSIST_RECOVERY" onMatch="ACCEPT" onMismatch="NEUTRAL"/-->
+    <!--MarkerFilter marker="PERSIST_WRITES" onMatch="ACCEPT" onMismatch="NEUTRAL"/-->
+    <!-- have to explicitly DENY all the markers' log, then explicitly add back one by one -->
+    <MarkerFilter marker="GEMFIRE_MARKER" onMatch="DENY" onMismatch="NEUTRAL"/>
+  </filters>
+  <Appenders>
+    <Console name="STDOUT" target="SYSTEM_OUT">
+      <PatternLayout pattern="${gemfire-pattern}"/>
+    </Console>
+    <Console name="STDERR" target="SYSTEM_ERR">
+      <PatternLayout pattern="${gemfire-pattern}"/>
+    </Console>
+    <!--RollingFile name="RollingFile" fileName="${filename}"-->
+    <File name="Log" fileName="system.log" bufferedIO="true">
+      <PatternLayout pattern="${gemfire-pattern}"/>
+    </File>
+  </Appenders>
+  <Loggers>
+    <Logger name="com.gemstone" level="INFO" additivity="false">
+      <AppenderRef ref="Log"/>
+    </Logger>
+    <Logger name="com.gemstone.gemfire.distributed.internal" level="TRACE" additivity="false">
+      <AppenderRef ref="STDOUT" level="DEBUG"/>
+    </Logger>
+    <Logger name="com.gemstone.gemfire.cache.client.internal" level="TRACE" additivity="false">
+      <AppenderRef ref="STDOUT" level="DEBUG"/>
+    </Logger>
+    <Logger name="com.gemstone.gemfire.internal.cache" level="TRACE" additivity="false">
+      <AppenderRef ref="STDOUT" level="TRACE"/>
+    </Logger>
+    <!--Logger name="com.gemstone.gemfire.distributed.internal.DistributionManager" level="TRACE" additivity="false">
+      <AppenderRef ref="Log" level="DEBUG"/>
+    </Logger-->
+    <!--Logger name="com.gemstone.gemfire.distributed.internal.DistributionMessage" level="TRACE" additivity="false">
+      <AppenderRef ref="Log" level="DEBUG"/>
+    </Logger-->
+    <Root level="ERROR">
+      <!--AppenderRef ref="STDOUT"/-->
+    </Root>
+  </Loggers>
+</Configuration>

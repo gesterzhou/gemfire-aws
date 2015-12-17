@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+# print all statements
+set -x
+# fail is a statement fails
+set -e
+# fail if a pipe fails
+set -o pipefail
+
+bin=`dirname "$0"`
+bin=`cd "$bin">/dev/null; pwd`
+
+main() {
+  # not installed by default on RHEL based system, installed on SUSE
+  if command -v yum 2>/dev/null ; then
+    yum install -y ntp
+    chkconfig ntpd on
+  fi
+  if command -v yast 2>/dev/null ; then
+    chkconfig ntp on
+  fi
+
+
+  # switch from centos servers to amazons
+  sed -i 's;centos;amazon;g' /etc/ntp.conf
+
+  # needed or else ntp never syncs
+  cat >> /etc/ntp.conf <<EOF
+# Enable additional logging.
+logconfig =clockall =peerall =sysall =syncall
+
+# Listen only on the primary network interface.
+interface listen eth0
+interface ignore ipv6
+server 172.16.1.5   # added by /sbin/dhclient-script
+server 172.16.1.6   # added by /sbin/dhclient-script
+
+# add localhost incase the node can't reach the other servers
+# http://www.thegeekstuff.com/2014/06/linux-ntp-server-client/
+server  127.127.1.0 # local clock
+fudge   127.127.1.0 stratum 10
+EOF
+}
+
+main "$@"

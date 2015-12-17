@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+if [ $# -ne 1 ]; then
+  echo "Usage: terminate-instances instance_type"
+  exit 1
+fi
+instance_type=$1
+if [ ! -f ${instance_type}.txt ]; then
+  echo "${instance_type}.txt does not exist"
+  exit 1
+fi
+
+instance_ids=`cat ${instance_type}.txt | awk '{print $2}'`
+
+for instance_id in $instance_ids
+do
+  aws ec2 terminate-instances --instance-ids $instance_id
+  echo $instance_id is terminated
+done
+
+rm -rf ${instance_type}.txt

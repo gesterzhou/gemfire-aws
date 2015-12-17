@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -x
+set -e
+set -o pipefail
+
+if [[ -f /etc/rc.d/rc.local ]] ; then
+  cat /etc/rc.d/rc.local > /etc/init.d/after.local
+  chmod +x /etc/init.d/after.local
+fi

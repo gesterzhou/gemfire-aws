@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+set -x
+set -e
+set -o pipefail
+
+bin=`dirname "$0"`
+bin=`cd "$bin">/dev/null; pwd`
+
+user=gpadmin
+group="$user"
+home="/home/$user"
+
+create_user() {
+  groupadd -g 500 "$group"
+  if [ -f /etc/SuSE-release ]; then
+    useradd -G "users" -m -g "$group" "$user"
+  else
+    useradd -g "$group" "$user"
+  fi
+  mkdir "$home/.ssh"
+
+  sudo sh -c "cat > /etc/sudoers.d/gpadmin <<EOF
+$user ALL=(ALL) NOPASSWD: ALL
+Defaults:gpadmin !requiretty
+EOF
+"
+
+  if [ -f /etc/SuSE-release ]; then
+    chmod 0440 /etc/sudoers.d/gpadmin
+  fi
+
+  chown -R "$user:$group" "$home/"
+  chmod 777 "$home"
+  chmod -R 777 "$home/.ssh"
+  echo "$user:changeme" | chpasswd
+}
+
+# setup init to update the gpadmin user's keys
+setup_init() {
+  if [ ! -f /etc/rc.d/rc.local ]; then
+    touch /etc/rc.d/rc.local
+  fi
+
+  chmod +x /etc/rc.d/rc.local
+  sudo sh -c "cat > /etc/rc.d/rc.local <<EOF
+#!/bin/sh
+#
+# This script will be executed *after* all the other init scripts.
+# You can put your own initialization stuff in here if you dont
+# want to do the full Sys V style init stuff.
+
+systemctl stop ntpd.service
+ntpd -gq
+systemctl start ntpd.service
+
+EOF
+"
+}
+
+main() {
+  create_user
+  setup_init
+}
+
+main "$@"

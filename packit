@@ -1,0 +1,7 @@
+#! /bin/sh
+
+aws_access_key_id=$( cat ~/.aws/config | grep aws_access_key_id | awk '{ print $3 }' )
+aws_secret_access_key=$( cat ~/.aws/config | grep aws_secret_access_key | awk '{ print $3 }' )
+
+packer build -var aws_access_key=${aws_access_key_id} -var aws_secret_key=${aws_secret_access_key} $1
+

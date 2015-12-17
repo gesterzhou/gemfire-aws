@@ -1,0 +1,7 @@
+How to create AMI, instances and terminate them?
+------------------------------------------------
+
+scripts/create-ami
+scripts/create-instances t2.medium 2
+scripts/terminate-instances t2.medium
+

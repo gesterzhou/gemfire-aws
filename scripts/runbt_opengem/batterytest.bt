@@ -1,0 +1,4 @@
+cacheperf/comparisons/parReg/peerDataGet.conf peerHosts=8 peerVMsPerHost=1 peerThreadsPerVM=1 maxKeys=100000 objectSize=1024 redundantCopies=1 conserveSockets=false perffmwk.comparisonKey=get_08_01
+cacheperf/comparisons/parReg/peerDataPut.conf peerHosts=8 peerVMsPerHost=1 peerThreadsPerVM=1 maxKeys=100000 objectSize=1024 redundantCopies=1 conserveSockets=false perffmwk.comparisonKey=put_08_01
+cacheperf/comparisons/parReg/peerDataGet.conf peerHosts=8 peerVMsPerHost=1 peerThreadsPerVM=5 maxKeys=100000 objectSize=1024 redundantCopies=1 conserveSockets=false perffmwk.comparisonKey=get_08_05
+cacheperf/comparisons/parReg/peerDataPut.conf peerHosts=8 peerVMsPerHost=1 peerThreadsPerVM=5 maxKeys=100000 objectSize=1024 redundantCopies=1 conserveSockets=false perffmwk.comparisonKey=put_08_05

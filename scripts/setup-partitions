@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -x
+set -e
+set -o pipefail
+
+bin=`dirname "$0"`
+bin=`cd "$bin">/dev/null; pwd`
+
+main() {
+  # not installed by default on RHEL based system, available on SuSE
+  if command -v yum 2>/dev/null ; then
+    sudo yum install -y xfsprogs 
+  fi
+
+  # on boot, format and mount the new drives
+  cat >> /etc/rc.d/rc.local <<OUT
+
+# if non-zero, then TRIM is supported
+check_trim_support() {
+  local dev="\$1"
+  cat "/sys/block/\$dev/queue/discard_max_bytes"
+}
+
+# setup XFS
+#TODO support variable length drives (most come with 1/2, some 0)
+mkfs.xfs -K /dev/xvdb
+mkdir /data
+chmod 777 /data
+if [ "\$(check_trim_support xvdb)" == "0" ]; then
+  # TRIM not supported, don't mount with TRIM
+  mount /dev/xvdb /data
+else
+  mount -o discard /dev/xvdb /data
+fi
+OUT
+
+}
+
+main "$@"

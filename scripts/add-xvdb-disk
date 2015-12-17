@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -x
+set -e
+set -o pipefail
+
+bin=`dirname "$0"`
+bin=`cd "$bin">/dev/null; pwd`
+
+main() {
+  # on boot, format and mount the new xvdb drive
+  sudo sh -c 'cat >> /etc/rc.d/rc.local <<EOF
+
+## Set up ephemoral disk
+sgdisk -o /dev/xvdb
+sgdisk -n 1:0:0 -c 1:"Linux filesystem" -t 1:8300 /dev/xvdb
+mkfs.xfs /dev/xvdb1
+mount -t xfs /dev/xvdb1 /data
+chown gfadmin:gfadmin /data/.
+
+EOF
+'
+
+  sudo chmod +x /etc/rc.d/rc.local
+}
+
+main "$@"

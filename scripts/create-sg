@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+#create a security group and instance for public accessing
+#i.e. ssh to its public DNS or public IP
+
+aws ec2 create-security-group --group-name GemfireSG --description "Gemfire security group" --vpc-id vpc-be10fddb 2>/dev/null | tee sg.log
+sglogsize=`wc -l sg.log | cut -f1 -d' '`
+if [ $sglogsize -eq 0 ]; then
+  aws ec2 describe-security-groups --filters Name=group-name,Values=GemfireSG | tee sg.log
+  sg_id=`grep GroupId sg.log | cut -f4 -d'"'`
+  echo $sg_id > GemfireSG.txt
+  echo "GemfireSG already exists, id is: $sg_id"
+  exit 0
+fi
+sg_id=`grep GroupId sg.log | cut -f4 -d'"'`
+aws ec2 authorize-security-group-ingress --group-id $sg_id --protocol tcp --port 22 --cidr 0.0.0.0/00
+aws ec2 authorize-security-group-ingress --group-id $sg_id --protocol tcp --port 1024-65535 --cidr 0.0.0.0/00
+aws ec2 authorize-security-group-ingress --group-id $sg_id --protocol udp --port 1024-65535 --cidr 0.0.0.0/00
+aws ec2 describe-security-groups --group-id $sg_id
+echo $sg_id > GemfireSG.txt
+
